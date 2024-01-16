@@ -31,7 +31,6 @@ use crate::utils::{
     check_case, check_no_whitespace, input_no_whitespace, input_with_case, input_yes_or_no,
 };
 
-use anyhow::Context;
 use build_fs_tree::{dir, Build, MergeableFileSystemTree};
 use convert_case::Case;
 use dialoguer::Input;

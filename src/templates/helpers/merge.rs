@@ -1,12 +1,9 @@
-use anyhow::anyhow;
 use handlebars::{
     Context, Handlebars, Helper, HelperDef, HelperResult, Output, RenderContext, RenderError,
     Renderable, StringOutput,
 };
 use serde::{Deserialize, Serialize};
 use serde_json::{Map, Number, Value};
-
-use crate::error::ScaffoldError;
 
 pub fn get_scope_open_and_close_char_indexes(
     text: &String,
