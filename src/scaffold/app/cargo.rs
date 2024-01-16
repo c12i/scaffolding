@@ -1,6 +1,7 @@
 use std::{path::PathBuf, process::Stdio, str::from_utf8};
 
 use crate::file_tree::{file_content, insert_file, FileTree};
+use anyhow::Context;
 use cargo_metadata::{Metadata, MetadataCommand};
 
 use crate::error::{ScaffoldError, ScaffoldResult};
@@ -48,7 +49,7 @@ pub fn add_workspace_path_dependency(
                 .as_os_str()
                 .to_os_string()
                 .to_str()
-                .unwrap()
+                .context("Failed to convert to str")?
                 .to_string(),
         ),
     );

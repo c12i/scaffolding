@@ -9,6 +9,7 @@ use crate::{
     templates::{dna::scaffold_dna_templates, ScaffoldedTemplate},
     utils::choose_directory_path,
 };
+use anyhow::anyhow;
 use build_fs_tree::{dir, file};
 use dialoguer::{theme::ColorfulTheme, Select};
 use holochain_types::prelude::{
@@ -227,7 +228,7 @@ pub fn scaffold_dna(
         .description(None)
         .roles(roles)
         .build()
-        .unwrap()
+        .map_err(|e| anyhow!(e))?
         .into();
 
     let app_name = app_file_tree.app_manifest.app_name().to_string();

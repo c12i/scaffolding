@@ -1,3 +1,4 @@
+use anyhow::anyhow;
 use holochain_types::prelude::{
     DnaManifest, DnaManifestCurrentBuilder, ZomeDependency, ZomeManifest,
 };
@@ -60,7 +61,7 @@ pub fn add_coordinator_zome_to_manifest(
         .integrity(integrity_manifest)
         .name(dna_file_tree.dna_manifest.name())
         .build()
-        .unwrap()
+        .map_err(|e| anyhow!(e))?
         .into();
 
     insert_file(

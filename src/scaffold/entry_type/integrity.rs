@@ -1,3 +1,4 @@
+use anyhow::Context;
 use convert_case::{Case, Casing};
 use itertools::Itertools;
 use proc_macro2::TokenStream;
@@ -399,7 +400,7 @@ pub use {}::*;
                                     format!("{}({})", pascal_entry_def_name, pascal_entry_def_name)
                                         .as_str(),
                                 )
-                                .unwrap();
+                                .context("Failed to parse str")?;
                                 item_enum.variants.push(new_variant);
                                 return Ok(syn::Item::Enum(item_enum));
                             }
@@ -414,7 +415,7 @@ pub use {}::*;
             // If the file is lib.rs, we already have the entry struct imported so no need to import it again
             if found && file_path.file_name() != Some(OsString::from("lib.rs").as_os_str()) {
                 file.items
-                    .insert(0, syn::parse_str::<syn::Item>("use crate::*;").unwrap());
+                    .insert(0, syn::parse_str::<syn::Item>("use crate::*;").context("Failed to parse str")?);
             }
 
             Ok(file)
@@ -465,7 +466,7 @@ pub fn get_all_entry_types(
     match entry_defs_instances.len() {
         0 => Ok(None),
         1 => {
-            let entry_def_enum = entry_defs_instances.values().next().unwrap();
+            let entry_def_enum = entry_defs_instances.values().next().context("No entry definitions found")?;
 
             let variants: Vec<String> = entry_def_enum
                 .clone()

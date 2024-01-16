@@ -1,3 +1,4 @@
+use anyhow::anyhow;
 use handlebars::{
     Context, Handlebars, Helper, HelperDef, HelperResult, Output, RenderContext, RenderError,
     Renderable, StringOutput,
@@ -5,13 +6,15 @@ use handlebars::{
 use serde::{Deserialize, Serialize};
 use serde_json::{Map, Number, Value};
 
+use crate::error::ScaffoldError;
+
 pub fn get_scope_open_and_close_char_indexes(
     text: &String,
     scope_opener: &String,
 ) -> Result<(usize, usize), RenderError> {
-    let mut index = text.find(scope_opener.as_str()).ok_or(RenderError::new(
-        "Given scope opener not found in the given parameter",
-    ))?;
+    let mut index = text
+        .find(scope_opener.as_str())
+        .ok_or(RenderError::new("Given scope opener not found in the given parameter"))?;
 
     index = index + scope_opener.len() - 1;
     let scope_opener_index = index.clone();
@@ -156,16 +159,14 @@ impl HelperDef for MatchScope {
 
         let mut data = rc
             .context()
-            .unwrap()
+            .ok_or(RenderError::new("Failed to get context"))?
             .data()
             .as_object()
             .ok_or(RenderError::new("Context must be an object"))?
             .clone();
 
         let Some(Value::String(scope_content)) = data.get(SCOPE_CONTENT) else {
-            return Err(RenderError::new(
-            "match_scope needs to be placed inside a merge helper",
-            ));
+            return Err(RenderError::new("match_scope needs to be placed inside a merge helper"));
         };
 
         let scope_opener = h
@@ -191,17 +192,20 @@ impl HelperDef for MatchScope {
             Value::String(previous_scope_content.clone().to_string()),
         );
 
-        let mut matched_scopes = match data.get(MATCHED_SCOPES) {
-            Some(Value::Array(array)) => array.clone(),
-            _ => vec![],
-        };
+        let mut matched_scopes =
+            match data.get(MATCHED_SCOPES) {
+                Some(Value::Array(array)) => array.clone(),
+                _ => vec![],
+            };
 
         rc.set_context(Context::wraps(data.clone())?);
 
         let mut inner_output = StringOutput::new();
         t.render(r, ctx, rc, &mut inner_output)?;
 
-        let out_string = inner_output.into_string().unwrap();
+        let out_string = inner_output
+            .into_string()
+            .map_err(|_| RenderError::new("Failed to convert StringOutput into String"))?;
 
         let mut map = Map::new();
         map.insert(

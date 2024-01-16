@@ -1,3 +1,4 @@
+use anyhow::anyhow;
 use holochain_types::prelude::{AppManifest, AppManifestCurrentBuilder};
 use holochain_types::web_app::{
     AppManifestLocation, WebAppManifest, WebAppManifestCurrentBuilder, WebUI,
@@ -15,7 +16,7 @@ pub fn empty_happ_manifest(
         .description(app_description)
         .roles(vec![])
         .build()
-        .unwrap()
+        .map_err(|e| anyhow!(e))?
         .into();
 
     let s = serde_yaml::to_string(&manifest)?;
@@ -36,7 +37,7 @@ pub fn web_happ_manifest(
             location: Location::Bundled(ui_zip_path.into()),
         })
         .build()
-        .unwrap()
+        .map_err(|e| anyhow!(e))?
         .into();
 
     let s = serde_yaml::to_string(&manifest)?;

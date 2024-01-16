@@ -50,7 +50,13 @@ pub fn register_concat_helper<'a>(mut h: Handlebars<'a>) -> Handlebars<'a> {
 }
 
 pub fn register_contains_helper<'a>(mut h: Handlebars<'a>) -> Handlebars<'a> {
-    handlebars_helper!(contains: |list: Option<Vec<Value>>, value: Value| list.is_some() && list.unwrap().contains(&value));
+    handlebars_helper!(contains: |list: Option<Vec<Value>>, value: Value| {
+        if let Some(l) = list {
+            l.contains(&value)
+        } else {
+            false
+        }
+    });
     h.register_helper("contains", Box::new(contains));
 
     h

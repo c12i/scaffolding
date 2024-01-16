@@ -1,5 +1,6 @@
 use std::path::PathBuf;
 
+use anyhow::Context;
 use convert_case::{Case, Casing};
 use dialoguer::{theme::ColorfulTheme, Confirm, Select};
 use regex::Regex;
@@ -39,8 +40,8 @@ pub fn parse_fields(fields_str: &str) -> ScaffoldResult<FieldDefinition> {
 
     let field_type_str = sp[1].to_string();
 
-    let vec_regex = Regex::new(r"Vec<(?P<a>(.)*)>\z").unwrap();
-    let option_regex = Regex::new(r"Option<(?P<a>(.)*)>\z").unwrap();
+    let vec_regex = Regex::new(r"Vec<(?P<a>(.)*)>\z").context("Invalid regex")?;
+    let option_regex = Regex::new(r"Option<(?P<a>(.)*)>\z").context("Invalid regex")?;
 
     let (field_type, cardinality) = if vec_regex.is_match(field_type_str.as_str()) {
         let field_type = vec_regex.replace(field_type_str.as_str(), "${a}");
@@ -125,8 +126,8 @@ pub fn choose_widget(
             let widgets_that_can_render_this_type: Vec<String> = folders
                 .into_iter()
                 .filter(|(_key, value)| value.dir_content().is_some())
-                .map(|(key, _value)| key)
-                .map(|s| s.to_str().unwrap().to_string())
+                .map(|(key, _)| key.to_str().map(|s| s.to_string()))
+                .flatten()
                 .collect();
 
             if widgets_that_can_render_this_type.len() == 0 {
@@ -265,7 +266,7 @@ pub fn choose_field(
                         return Err(ScaffoldError::NoEntryTypesDefFoundForIntegrityZome(
                             zome_file_tree.dna_file_tree.dna_manifest.name(),
                             zome_file_tree.zome_manifest.name.to_string(),
-                        ))
+                        ));
                     }
 
                     let selection = Select::with_theme(&ColorfulTheme::default())

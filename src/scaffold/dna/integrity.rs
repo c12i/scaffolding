@@ -1,3 +1,4 @@
+use anyhow::anyhow;
 use holochain_types::prelude::{DnaManifest, DnaManifestCurrentBuilder, ZomeManifest};
 
 use crate::{error::ScaffoldResult, file_tree::insert_file};
@@ -36,7 +37,7 @@ pub fn add_integrity_zome_to_manifest(
         .integrity(integrity_manifest)
         .name(dna_file_tree.dna_manifest.name())
         .build()
-        .unwrap()
+        .map_err(|e| anyhow!(e))?
         .into();
 
     let dna_manifest_path = dna_file_tree.dna_manifest_path.clone();

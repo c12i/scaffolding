@@ -1,3 +1,4 @@
+use anyhow::Context;
 use build_fs_tree::{dir, file};
 use std::{ffi::OsString, path::PathBuf};
 
@@ -59,7 +60,7 @@ fn web_app_skeleton(
     scaffold_template_result
         .file_tree
         .dir_content_mut()
-        .unwrap()
+        .context("Failed to get mutable directory content")?
         .insert(OsString::from("dnas"), dir! {});
 
     Ok(scaffold_template_result)

@@ -124,7 +124,7 @@ pub fn scaffold_entry_type(
 
     let crud = match maybe_crud {
         Some(c) => c.clone(),
-        None => choose_crud(),
+        None => choose_crud()?,
     };
 
     let link_from_original_to_each_update = match crud.update {
@@ -238,28 +238,22 @@ pub fn scaffold_entry_type(
     )
 }
 
-fn choose_crud() -> Crud {
+fn choose_crud() -> ScaffoldResult<Crud> {
     let selections = MultiSelect::with_theme(&ColorfulTheme::default())
         .with_prompt("Which CRUD functions should be scaffolded (SPACE to select/unselect, ENTER to continue)?")
         .item_checked("Update", true)
         .item_checked("Delete", true)
-        .interact()
-        .unwrap();
+        .interact()?;
 
-    let mut crud = Crud {
-        delete: false,
-
-        update: false,
-    };
+    let mut crud = Crud::default();
 
     for selection in selections {
-        if selection == 0 {
-            crud.update = true;
-        }
-        if selection == 1 {
-            crud.delete = true;
+        match selection {
+            0 => crud.update = true,
+            1 => crud.delete = true,
+            _ => {}
         }
     }
 
-    crud
+    Ok(crud)
 }

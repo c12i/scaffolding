@@ -1,3 +1,4 @@
+use anyhow::Context;
 use build_fs_tree::serde::Serialize;
 use dialoguer::theme::ColorfulTheme;
 use dialoguer::Select;
@@ -62,7 +63,10 @@ pub fn register_all_partials_in_dir<'a>(
 
     for (path, content) in partials {
         h.register_partial(
-            path.with_extension("").as_os_str().to_str().unwrap(),
+            path.with_extension("")
+                .as_os_str()
+                .to_str()
+                .context("Failed to convert os_str to str")?,
             content.trim(),
         )?;
     }
@@ -82,13 +86,23 @@ pub fn render_template_file<'a>(
     if let Ok(previous_content) = file_content(existing_app_file_tree, &target_path) {
         value
             .as_object_mut()
-            .unwrap()
+            .context("Failed to get object from value")?
             .insert("previous_file_content".into(), previous_content.into());
     }
 
     let mut h = h.clone();
-    h.register_template_string(target_path.to_str().unwrap(), template_str)?;
-    let new_contents = h.render(target_path.to_str().unwrap(), &value)?;
+    h.register_template_string(
+        target_path
+            .to_str()
+            .context("Failed to convert PathBuf to str")?,
+        template_str,
+    )?;
+    let new_contents = h.render(
+        target_path
+            .to_str()
+            .context("Failed to convert PathBuf to str")?,
+        &value,
+    )?;
 
     Ok(new_contents)
 }
@@ -113,11 +127,11 @@ pub fn render_template_file_tree<'a, T: Serialize>(
             let re = Regex::new(
                 r"(?P<c>(.)*)/\{\{#each (?P<b>([^\{\}])*)\}\}(?P<a>(.)*)\{\{/each\}\}.hbs\z",
             )
-            .unwrap();
+            .context("Invalid regex")?;
             let if_regex = Regex::new(
                 r"(?P<c>(.)*)/\{\{#if (?P<b>([^\{\}])*)\}\}(?P<a>(.)*)\{\{/if\}\}.hbs\z",
             )
-            .unwrap();
+            .context("Invalid regex")?;
 
             if re.is_match(path.to_str().unwrap()) {
                 let path_prefix = re.replace(path.to_str().unwrap(), "${c}");
@@ -140,7 +154,7 @@ pub fn render_template_file_tree<'a, T: Serialize>(
                     let each_if_re = Regex::new(
                     r"(?P<c>(.)*)/\{\{#each (?P<b>([^\{\}])*)\}\}\{\{#if (?P<d>([^\{\}])*)\}\}(?P<a>(.)*)\{\{/if\}\}\{\{/each\}\}.hbs\z",
                 )
-                .unwrap();
+                .context("Invalid regex")?;
                     let b = re.replace(path.to_str().unwrap(), "${b}");
                     let new_all_contents = match each_if_re.is_match(path.to_str().unwrap()) {
                         true => {
@@ -250,10 +264,7 @@ pub fn choose_or_get_template_file_tree(
     if dir_exists(file_tree, &templates_path()) {
         let template_name = choose_or_get_template(file_tree, template)?;
 
-        Ok(FileTree::Directory(dir_content(
-            &file_tree,
-            &templates_path().join(template_name),
-        )?))
+        Ok(FileTree::Directory(dir_content(&file_tree, &templates_path().join(template_name))?))
     } else {
         let ui_framework = guess_or_choose_framework(file_tree)?;
 

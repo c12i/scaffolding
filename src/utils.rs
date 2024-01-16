@@ -60,7 +60,8 @@ fn get_folders_names(folder: &BTreeMap<OsString, FileTree>) -> Vec<String> {
     folder
         .into_iter()
         .filter(|d| d.1.dir_content().is_some())
-        .map(|(n, _)| n.to_str().unwrap().to_string())
+        .map(|(n, _)| n.to_str().map(|s| s.to_string()))
+        .flatten()
         .collect()
 }
 

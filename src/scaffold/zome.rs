@@ -1,3 +1,4 @@
+use anyhow::Context;
 use dialoguer::{theme::ColorfulTheme, Confirm, Select};
 use mr_bundle::Location;
 use regex::Regex;
@@ -51,29 +52,26 @@ impl ZomeFileTree {
             DnaManifest::V1(v1) => v1.integrity.zomes.clone(),
         };
 
-        let zome_manifest = match (integrity_zomes.len(), integrity_zome_name) {
-            (0, None) => Err(ScaffoldError::NoIntegrityZomesFound(
-                dna_file_tree.dna_manifest.name(),
-            )),
-            (1, None) => {
-                integrity_zomes
+        let zome_manifest =
+            match (integrity_zomes.len(), integrity_zome_name) {
+                (0, None) => {
+                    Err(ScaffoldError::NoIntegrityZomesFound(dna_file_tree.dna_manifest.name()))
+                }
+                (1, None) => integrity_zomes
                     .into_iter()
                     .last()
-                    .ok_or(ScaffoldError::NoIntegrityZomesFound(
+                    .ok_or(ScaffoldError::NoIntegrityZomesFound(dna_file_tree.dna_manifest.name())),
+                (_, None) => {
+                    choose_integrity_zome(&dna_file_tree.dna_manifest.name(), &integrity_zomes)
+                }
+                (_, Some(name)) => integrity_zomes
+                    .into_iter()
+                    .find(|zome| zome.name.0.to_string().eq(name))
+                    .ok_or(ScaffoldError::IntegrityZomeNotFound(
+                        name.clone(),
                         dna_file_tree.dna_manifest.name(),
-                    ))
-            }
-            (_, None) => {
-                choose_integrity_zome(&dna_file_tree.dna_manifest.name(), &integrity_zomes)
-            }
-            (_, Some(name)) => integrity_zomes
-                .into_iter()
-                .find(|zome| zome.name.0.to_string().eq(name))
-                .ok_or(ScaffoldError::IntegrityZomeNotFound(
-                    name.clone(),
-                    dna_file_tree.dna_manifest.name(),
-                )),
-        }?;
+                    )),
+            }?;
         ZomeFileTree::from_zome_manifest(dna_file_tree, zome_manifest)
     }
 
@@ -101,24 +99,31 @@ fn zome_crate_path(
     dna_file_tree: &DnaFileTree,
     zome_manifest: &ZomeManifest,
 ) -> ScaffoldResult<PathBuf> {
-    match zome_manifest.location.clone() {
+    match &zome_manifest.location {
         Location::Bundled(bundled_path) => {
-            let file_name_os_str = bundled_path.file_name().unwrap();
+            let file_name_os_str = bundled_path
+                .file_name()
+                .context("Failed to get file_name")?;
             let file_name = file_name_os_str
                 .to_os_string()
                 .to_str()
-                .unwrap()
-                .to_string();
+                .map(|s| s.to_string())
+                .context("Failed to convert OsStr to String")?;
 
-            let crate_name = file_name.split(".wasm").next().unwrap().to_string();
+            let crate_name = file_name
+                .split(".wasm")
+                .next()
+                .map(|s| s.to_string())
+                .context("Failed to extract crate name")?;
 
-            let mut manifest_path =
-                workspace_package_path(dna_file_tree.file_tree_ref(), &crate_name)?.ok_or(
-                    ScaffoldError::IntegrityZomeNotFound(
-                        zome_manifest.name.0.to_string(),
-                        dna_file_tree.dna_manifest.name(),
-                    ),
-                )?;
+            let mut manifest_path = workspace_package_path(
+                dna_file_tree.file_tree_ref(),
+                &crate_name,
+            )?
+            .ok_or(ScaffoldError::IntegrityZomeNotFound(
+                zome_manifest.name.0.to_string(),
+                dna_file_tree.dna_manifest.name(),
+            ))?;
 
             manifest_path.pop();
 
@@ -179,8 +184,8 @@ fn try_to_guess_integrity_zomes_location(
 
     // if there is a workspace member string containing an expression with the word integrity followed by /*, pick this one
     // and add the right dna name to the path
-    let re =
-        Regex::new(r"\A(?P<a>([^/*]*/)*)\*/(?P<b>(zomes/[^/*]*integrity[^/*]*/))\*\z").unwrap();
+    let re = Regex::new(r"\A(?P<a>([^/*]*/)*)\*/(?P<b>(zomes/[^/*]*integrity[^/*]*/))\*\z")
+        .context("Invalid regex")?;
     for member in members.clone() {
         if re.is_match(member.as_str()) {
             // if there is a zomes/[something with "integrity"]/* pattern
@@ -192,7 +197,8 @@ fn try_to_guess_integrity_zomes_location(
         }
     }
 
-    let re = Regex::new(r"\A(?P<a>([^/*]*/)*)\*/(?P<b>([^/*]*integrity[^/*]*/))\*\z").unwrap();
+    let re = Regex::new(r"\A(?P<a>([^/*]*/)*)\*/(?P<b>([^/*]*integrity[^/*]*/))\*\z")
+        .context("Invalid regex")?;
     for member in members.clone() {
         if re.is_match(member.as_str()) {
             // if there is a [something with "integrity"]/* pattern
@@ -205,7 +211,8 @@ fn try_to_guess_integrity_zomes_location(
     }
 
     if members.len() == 1 {
-        let re = Regex::new(r"\A(?P<a>([^/*]*/)*)\*/(?P<b>([^/*]*/)*)\*\z").unwrap();
+        let re =
+            Regex::new(r"\A(?P<a>([^/*]*/)*)\*/(?P<b>([^/*]*/)*)\*\z").context("Invalid regex")?;
 
         if re.is_match(members[0].as_str()) {
             let new_path = re.replace(
@@ -215,7 +222,7 @@ fn try_to_guess_integrity_zomes_location(
             return Ok(Some(PathBuf::from(new_path.to_string())));
         }
 
-        let re = Regex::new(r"\A(?P<a>([^/*]*/)*)\*\z").unwrap();
+        let re = Regex::new(r"\A(?P<a>([^/*]*/)*)\*\z").context("Invalid regex")?;
 
         if re.is_match(members[0].as_str()) {
             let new_path = re.replace(members[0].as_str(), r"${a}");
@@ -261,8 +268,8 @@ fn try_to_guess_coordinator_zomes_location(
 
     // if there is a workspace member string containing an expression with the word integrity followed by /*, pick this one
     // and add the right dna name to the path
-    let re =
-        Regex::new(r"\A(?P<a>([^/*]*/)*)\*/(?P<b>(zomes/[^/*]*coordinator[^/*]*/))\*\z").unwrap();
+    let re = Regex::new(r"\A(?P<a>([^/*]*/)*)\*/(?P<b>(zomes/[^/*]*coordinator[^/*]*/))\*\z")
+        .context("Invalid regex")?;
     for member in members.clone() {
         if re.is_match(member.as_str()) {
             // if there is a zomes/[something with "coordinator"]/* pattern
@@ -274,7 +281,8 @@ fn try_to_guess_coordinator_zomes_location(
         }
     }
 
-    let re = Regex::new(r"\A(?P<a>([^/*]*/)*)\*/(?P<b>([^/*]*coordinator[^/*]*/))\*\z").unwrap();
+    let re = Regex::new(r"\A(?P<a>([^/*]*/)*)\*/(?P<b>([^/*]*coordinator[^/*]*/))\*\z")
+        .context("Invalid regex")?;
     for member in members.clone() {
         if re.is_match(member.as_str()) {
             // if there is a [something with "coordinator"]/* pattern
@@ -287,7 +295,8 @@ fn try_to_guess_coordinator_zomes_location(
     }
 
     if members.len() == 1 {
-        let re = Regex::new(r"\A(?P<a>([^/*]*/)*)\*/(?P<b>([^/*]*/)*)\*\z").unwrap();
+        let re =
+            Regex::new(r"\A(?P<a>([^/*]*/)*)\*/(?P<b>([^/*]*/)*)\*\z").context("Invalid regex")?;
 
         if re.is_match(members[0].as_str()) {
             let new_path = re.replace(
@@ -297,7 +306,7 @@ fn try_to_guess_coordinator_zomes_location(
             return Ok(Some(PathBuf::from(new_path.to_string())));
         }
 
-        let re = Regex::new(r"\A(?P<a>([^/*]*/)*)\*\z").unwrap();
+        let re = Regex::new(r"\A(?P<a>([^/*]*/)*)\*\z").context("Invalid regex")?;
 
         if re.is_match(members[0].as_str()) {
             let new_path = re.replace(members[0].as_str(), r"${a}");
@@ -339,8 +348,11 @@ pub fn add_common_zome_dependencies_to_workspace_cargo(
         &"hdk".to_string(),
         &format!("={}", hdk_version()),
     )?;
-    let file_tree =
-        add_workspace_external_dependency(file_tree, &"serde".to_string(), &"=1.0.166".to_string())?;
+    let file_tree = add_workspace_external_dependency(
+        file_tree,
+        &"serde".to_string(),
+        &"=1.0.166".to_string(),
+    )?;
 
     Ok(file_tree)
 }
@@ -358,21 +370,23 @@ pub fn scaffold_integrity_zome_with_path(
 
     let file_tree = add_common_zome_dependencies_to_workspace_cargo(dna_file_tree.file_tree())?;
 
-    let folder_name = match zome_name.strip_suffix("_integrity") {
-        Some(f) => f.to_string(),
-        None => zome_name.clone(),
-    };
+    let folder_name =
+        match zome_name.strip_suffix("_integrity") {
+            Some(f) => f.to_string(),
+            None => zome_name.clone(),
+        };
 
     let mut file_tree =
         add_workspace_path_dependency(file_tree, zome_name, &path.join(&folder_name))?;
 
     // Add zome to workspace Cargo.toml
-    let zome: FileTree = dir! {
-        "Cargo.toml" => file!(integrity::initial_cargo_toml(zome_name)),
-        "src" => dir! {
-            "lib.rs" => file!(integrity::initial_lib_rs())
-        }
-    };
+    let zome: FileTree =
+        dir! {
+            "Cargo.toml" => file!(integrity::initial_cargo_toml(zome_name)),
+            "src" => dir! {
+                "lib.rs" => file!(integrity::initial_lib_rs())
+            }
+        };
     insert_file_tree_in_dir(&mut file_tree, path, (OsString::from(folder_name), zome))?;
 
     let dna_file_tree = DnaFileTree::from_dna_manifest_path(file_tree, &dna_manifest_path)?;

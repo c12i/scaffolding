@@ -31,6 +31,7 @@ use crate::utils::{
     check_case, check_no_whitespace, input_no_whitespace, input_with_case, input_yes_or_no,
 };
 
+use anyhow::Context;
 use build_fs_tree::{dir, Build, MergeableFileSystemTree};
 use convert_case::Case;
 use dialoguer::Input;
@@ -559,16 +560,17 @@ Add new entry definitions to your zome with:
                 let file_tree = load_directory_into_memory(&current_dir)?;
                 let template_file_tree = choose_or_get_template_file_tree(&file_tree, &template)?;
 
-                let name = match name {
-                    Some(n) => {
-                        check_case(&n, "entry type name", Case::Snake)?;
-                        n
-                    }
-                    None => input_with_case(
-                        &String::from("Entry type name (snake_case):"),
-                        Case::Snake,
-                    )?,
-                };
+                let name =
+                    match name {
+                        Some(n) => {
+                            check_case(&n, "entry type name", Case::Snake)?;
+                            n
+                        }
+                        None => input_with_case(
+                            &String::from("Entry type name (snake_case):"),
+                            Case::Snake,
+                        )?,
+                    };
 
                 let dna_file_tree = DnaFileTree::get_or_choose(file_tree, &dna)?;
 
@@ -714,13 +716,14 @@ Collection "{}" scaffolded!
                     return Err(ScaffoldError::FolderAlreadyExists(app_dir.clone()))?;
                 }
 
-                let ui_framework = match example {
-                    Example::HelloWorld => UiFramework::Vanilla,
-                    Example::Forum => match template {
-                        Some(t) => UiFramework::from_str(t.as_str())?,
-                        None => choose_non_vanilla_ui_framework()?,
-                    },
-                };
+                let ui_framework =
+                    match example {
+                        Example::HelloWorld => UiFramework::Vanilla,
+                        Example::Forum => match template {
+                            Some(t) => UiFramework::from_str(t.as_str())?,
+                            None => choose_non_vanilla_ui_framework()?,
+                        },
+                    };
 
                 let template_file_tree = template_for_ui_framework(&ui_framework)?;
                 let template_name = format!("{:?}", ui_framework);
@@ -973,7 +976,7 @@ fn existing_templates_names(file_tree: &FileTree) -> ScaffoldResult<Vec<String>>
         Ok(templates_dir_content) => {
             let templates: Vec<String> = templates_dir_content
                 .into_keys()
-                .map(|k| k.to_str().unwrap().to_string())
+                .filter_map(|k| k.to_str().map(|k| k.to_string()))
                 .collect();
             Ok(templates)
         }

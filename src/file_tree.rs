@@ -1,3 +1,4 @@
+use anyhow::Context;
 use build_fs_tree::{dir, file, FileSystemTree};
 use ignore::WalkBuilder;
 use include_dir::Dir;
@@ -93,7 +94,10 @@ pub fn insert_file(
         file_tree,
         &folder_path,
         (
-            file_path.file_name().unwrap().to_os_string(),
+            file_path
+                .file_name()
+                .context("Failed to get file_name")?
+                .to_os_string(),
             file!(content),
         ),
     )
@@ -203,9 +207,9 @@ pub fn map_rust_files<F: Fn(PathBuf, syn::File) -> ScaffoldResult<syn::File> + C
     map_all_files(file_tree, |file_path, s| {
         if let Some(extension) = file_path.extension() {
             if extension == "rs" {
-                let rust_file: syn::File = syn::parse_str(s.as_str()).map_err(|e| {
-                    ScaffoldError::MalformedFile(file_path.clone(), format!("{}", e))
-                })?;
+                let rust_file: syn::File = syn::parse_str(s.as_str()).map_err(
+                    |e| ScaffoldError::MalformedFile(file_path.clone(), format!("{}", e))
+                )?;
                 let new_file = map_fn(file_path, rust_file)?;
 
                 return Ok(unparse(&new_file));
@@ -242,7 +246,12 @@ pub fn unflatten_file_tree(
                 .ok_or(ScaffoldError::PathNotFound(folder_path.clone()))?
                 .dir_content_mut()
                 .ok_or(ScaffoldError::PathNotFound(folder_path.clone()))?
-                .insert(path.file_name().unwrap().to_os_string(), file!(contents));
+                .insert(
+                    path.file_name()
+                        .context("Failed to get file_name")?
+                        .to_os_string(),
+                    file!(contents),
+                );
         } else {
             create_dir_all(&mut file_tree, &path)?;
         }
@@ -272,7 +281,9 @@ fn map_all_files_rec<F: Fn(PathBuf, String) -> ScaffoldResult<String> + Clone>(
                     map_all_files_rec(&mut tree, child_path, map_fn.clone())?;
                 }
                 FileTree::File(file_contents) => {
-                    *tree.file_content_mut().unwrap() = map_fn(child_path, file_contents)?;
+                    *tree
+                        .file_content_mut()
+                        .context("Failed to get file_content")? = map_fn(child_path, file_contents)?;
                 }
             }
 

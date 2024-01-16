@@ -1,3 +1,4 @@
+use anyhow::Context;
 use degit::{degit, validate_src};
 use temp_dir::TempDir;
 
@@ -14,10 +15,13 @@ pub fn get_template(
 ) -> ScaffoldResult<(String, FileTree)> {
     validate_src(template_url.clone()).map_err(|s| ScaffoldError::DegitError(s))?;
 
-    let tempdir = TempDir::new().unwrap();
+    let tempdir = TempDir::new().context("Failed to create temp dir")?;
 
     let tempdir_path = tempdir.path().to_path_buf();
-    degit(template_url.as_str(), tempdir_path.to_str().unwrap());
+    degit(
+        template_url.as_str(),
+        tempdir_path.to_str().context("Failed to convert to str")?,
+    );
 
     let file_tree = load_directory_into_memory(&tempdir_path)?;
 
@@ -27,9 +31,6 @@ pub fn get_template(
     })?;
     Ok((
         template_name.clone(),
-        FileTree::Directory(dir_content(
-            &file_tree,
-            &templates_path().join(template_name),
-        )?),
+        FileTree::Directory(dir_content(&file_tree, &templates_path().join(template_name))?),
     ))
 }
