@@ -53,7 +53,7 @@ fn validate_referenceable(
 
 pub fn add_link_type_to_integrity_zome(
     zome_file_tree: ZomeFileTree,
-    link_type_name: &String,
+    link_type_name: &str,
     from_referenceable: &Option<Referenceable>,
     to_referenceable: &Option<Referenceable>,
     delete: bool,
@@ -133,7 +133,7 @@ pub fn add_link_type_to_integrity_zome(
 
                 for item in &mut file.items {
                     if let syn::Item::Fn(item_fn) = item {
-                        if item_fn.sig.ident.to_string().eq(&String::from("validate")) {
+                        if item_fn.sig.ident.to_string().eq("validate") {
                             for stmt in &mut item_fn.block.stmts {
                                 if let syn::Stmt::Expr(syn::Expr::Match(match_expr), _) = stmt {
                                     if let syn::Expr::Try(try_expr) = &mut *match_expr.expr {
@@ -141,7 +141,7 @@ pub fn add_link_type_to_integrity_zome(
                                             if call
                                                 .method
                                                 .to_string()
-                                                .eq(&String::from("flattened"))
+                                                .eq("flattened")
                                             {
                                                 if let Some(turbofish) = &mut call.turbofish {
                                                     if let Some(last_arg) =
@@ -181,7 +181,7 @@ pub fn add_link_type_to_integrity_zome(
                                 .any(|v| v.ident.to_string().eq(&pascal_case_link_type_name))
                             {
                                 return Err(ScaffoldError::LinkTypeAlreadyExists(
-                                    link_type_name.clone(),
+                                    link_type_name.to_owned(),
                                     dna_manifest.name(),
                                     zome_manifest.name.0.to_string(),
                                 ));
@@ -344,7 +344,7 @@ fn add_link_type_signals(
             if file_path == PathBuf::from("lib.rs") {
                 for item in &mut file.items {
                     if let syn::Item::Enum(item_enum) = item {
-                        if item_enum.ident.to_string().eq(&String::from("Signal")) {
+                        if item_enum.ident.to_string().eq("Signal") {
                             if !signal_has_link_types(item_enum) {
                                 for v in signal_link_types_variants()? {
                                     item_enum.variants.push(v);
@@ -358,7 +358,7 @@ fn add_link_type_signals(
                             .sig
                             .ident
                             .to_string()
-                            .eq(&String::from("signal_action"))
+                            .eq("signal_action")
                         {
                             if let None = find_ending_match_expr_in_block(&mut item_fn.block) {
                                 item_fn.block = Box::new(syn::parse_str::<syn::Block>(
@@ -389,7 +389,7 @@ fn signal_has_link_types(signal_enum: &syn::ItemEnum) -> bool {
     signal_enum
         .variants
         .iter()
-        .find(|v| v.ident.to_string().eq(&String::from("LinkCreated")))
+        .find(|v| v.ident.to_string().eq("LinkCreated"))
         .is_some()
 }
 
@@ -403,7 +403,7 @@ fn signal_action_has_link_types(expr_match: &syn::ExprMatch) -> bool {
                     if first_segment
                         .ident
                         .to_string()
-                        .eq(&String::from("CreateLink"))
+                        .eq("CreateLink")
                     {
                         return true;
                     }
@@ -474,17 +474,18 @@ fn signal_action_match_arms() -> ScaffoldResult<Vec<syn::Arm>> {
 fn is_create_link(pat: &syn::Pat) -> bool {
     if let syn::Pat::Struct(pat_struct) = pat {
         if let Some(ps) = pat_struct.path.segments.last() {
-            if ps.ident.to_string().eq(&String::from("CreateLink")) {
+            if ps.ident.to_string().eq("CreateLink") {
                 return true;
             }
         }
     }
     return false;
 }
+
 fn is_delete_link(pat: &syn::Pat) -> bool {
     if let syn::Pat::Struct(pat_struct) = pat {
         if let Some(ps) = pat_struct.path.segments.last() {
-            if ps.ident.to_string().eq(&String::from("DeleteLink")) {
+            if ps.ident.to_string().eq("DeleteLink") {
                 return true;
             }
         }
@@ -494,22 +495,22 @@ fn is_delete_link(pat: &syn::Pat) -> bool {
 
 fn add_link_type_to_validation_arms(
     item: &mut syn::Item,
-    link_type_name: &String,
+    link_type_name: &str,
 ) -> ScaffoldResult<()> {
     if let syn::Item::Fn(item_fn) = item {
-        if item_fn.sig.ident.to_string().eq(&String::from("validate")) {
+        if item_fn.sig.ident.to_string().eq("validate") {
             for stmt in &mut item_fn.block.stmts {
                 if let syn::Stmt::Expr(syn::Expr::Match(match_expr), _) = stmt {
                     if let syn::Expr::Try(try_expr) = &mut *match_expr.expr {
                         if let syn::Expr::MethodCall(call) = &mut *try_expr.expr {
-                            if call.method.to_string().eq(&String::from("flattened")) {
+                            if call.method.to_string().eq("flattened") {
                                 for arm in &mut match_expr.arms {
                                     if let syn::Pat::TupleStruct(tuple_struct) = &mut arm.pat {
                                         if let Some(path_segment) =
                                             tuple_struct.path.segments.last()
                                         {
                                             let path_segment_str = path_segment.ident.to_string();
-                                            if path_segment_str.eq(&String::from("StoreRecord")) {
+                                            if path_segment_str.eq("StoreRecord") {
                                                 if let Some(op_entry_match_expr) =
                                                     find_ending_match_expr(&mut *arm.body)
                                                 {
@@ -601,7 +602,7 @@ fn add_link_type_to_validation_arms(
                                             let path_segment_str = path_segment.ident.to_string();
 
                                             if path_segment_str
-                                                .eq(&String::from("RegisterCreateLink"))
+                                                .eq("RegisterCreateLink")
                                             {
                                                 // Add new link type to match arm
                                                 if let Some(_) =
@@ -629,7 +630,7 @@ fn add_link_type_to_validation_arms(
                                                     link_type_match.arms.push(new_arm);
                                                 }
                                             } else if path_segment_str
-                                                .eq(&String::from("RegisterDeleteLink"))
+                                                .eq("RegisterDeleteLink")
                                             {
                                                 // Add new link type to match arm
                                                 if let Some(_) =

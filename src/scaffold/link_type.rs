@@ -62,18 +62,18 @@ pub fn scaffold_link_type(
     let from_referenceable = get_or_choose_referenceable(
         &zome_file_tree,
         from_referenceable,
-        &String::from("Link from which entry type?"),
+        "Link from which entry type?",
     )?;
 
     let to_referenceable = get_or_choose_optional_reference_type(
         &zome_file_tree,
         to_referenceable,
-        &String::from("Link to which entry type?"),
+        "Link to which entry type?",
     )?;
 
     let link_type = match to_referenceable.clone() {
         Some(to_referenceable) => link_type_name(&from_referenceable, &to_referenceable),
-        None => input_with_case(&String::from("Enter link type name:"), Case::Pascal)?,
+        None => input_with_case("Enter link type name:", Case::Pascal)?,
     };
 
     let bidirectional = match (&to_referenceable, bidirectional) {

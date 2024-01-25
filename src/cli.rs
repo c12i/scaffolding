@@ -493,9 +493,9 @@ Add new zomes to your DNA with:
                     let dependencies = match scaffold_integrity {
                         true => Some(vec![integrity_zome_name(&name)]),
                         false => {
-                            let integrity_zomes = select_integrity_zomes(&dna_file_tree.dna_manifest, Some(&String::from(
+                            let integrity_zomes = select_integrity_zomes(&dna_file_tree.dna_manifest, Some(
                               "Select integrity zome(s) this coordinator zome depends on (SPACE to select/unselect, ENTER to continue):"
-                            )))?;
+                            ))?;
                             Some(integrity_zomes)
                         }
                     };
@@ -565,7 +565,7 @@ Add new entry definitions to your zome with:
                         n
                     }
                     None => input_with_case(
-                        &String::from("Entry type name (snake_case):"),
+                        "Entry type name (snake_case):",
                         Case::Snake,
                     )?,
                 };
@@ -815,7 +815,7 @@ Collection "{}" scaffolded!
                         let ScaffoldedTemplate { file_tree, .. } = scaffold_entry_type(
                             zome_file_tree,
                             &template_file_tree,
-                            &String::from("post"),
+                            "post",
                             &Some(Crud {
                                 update: true,
                                 delete: true,
@@ -851,7 +851,7 @@ Collection "{}" scaffolded!
                         let ScaffoldedTemplate { file_tree, .. } = scaffold_entry_type(
                             zome_file_tree,
                             &template_file_tree,
-                            &String::from("comment"),
+                            "comment",
                             &Some(Crud {
                                 update: false,
                                 delete: true,
@@ -892,7 +892,7 @@ Collection "{}" scaffolded!
                         let ScaffoldedTemplate { file_tree, .. } = scaffold_collection(
                             zome_file_tree,
                             &template_file_tree,
-                            &String::from("all_posts"),
+                            "all_posts",
                             &Some(CollectionType::Global),
                             &Some(EntryTypeReference {
                                 entry_type: String::from("post"),

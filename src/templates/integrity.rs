@@ -21,11 +21,11 @@ pub struct ScaffoldIntegrityZomeData {
 pub fn scaffold_integrity_zome_templates(
     mut app_file_tree: FileTree,
     template_file_tree: &FileTree,
-    dna_role_name: &String,
+    dna_role_name: &str,
     zome_manifest: &ZomeManifest,
 ) -> ScaffoldResult<ScaffoldedTemplate> {
     let data = ScaffoldIntegrityZomeData {
-        dna_role_name: dna_role_name.clone(),
+        dna_role_name: dna_role_name.to_owned(),
         zome_manifest: zome_manifest.clone(),
     };
 

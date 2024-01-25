@@ -6,10 +6,10 @@ use serde::{Deserialize, Serialize};
 use serde_json::{Map, Number, Value};
 
 pub fn get_scope_open_and_close_char_indexes(
-    text: &String,
-    scope_opener: &String,
+    text: &str,
+    scope_opener: &str,
 ) -> Result<(usize, usize), RenderError> {
-    let mut index = text.find(scope_opener.as_str()).ok_or(RenderError::new(
+    let mut index = text.find(scope_opener).ok_or(RenderError::new(
         "Given scope opener not found in the given parameter",
     ))?;
 

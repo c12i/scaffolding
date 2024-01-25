@@ -12,7 +12,7 @@ use crate::{
 
 use super::ZomeFileTree;
 
-pub fn initial_cargo_toml(zome_name: &String, dependencies: &Option<Vec<String>>) -> String {
+pub fn initial_cargo_toml(zome_name: &str, dependencies: &Option<Vec<String>>) -> String {
     let deps = match dependencies {
         Some(d) => d
             .into_iter()
@@ -93,7 +93,7 @@ fn signal_action(action: SignedActionHashed) -> ExternResult<()> {{
 
 fn choose_extern_function(
     functions_by_zome: &BTreeMap<String, Vec<ItemFn>>,
-    prompt: &String,
+    prompt: &str,
 ) -> ScaffoldResult<(String, ItemFn)> {
     let all_functions: Vec<(String, ItemFn)> = functions_by_zome
         .iter()
@@ -111,7 +111,7 @@ fn choose_extern_function(
         .collect();
 
     let selection = Select::with_theme(&ColorfulTheme::default())
-        .with_prompt(prompt.as_str())
+        .with_prompt(prompt)
         .default(0)
         .items(&all_fns_str[..])
         .interact()?;
@@ -122,8 +122,8 @@ fn choose_extern_function(
 pub fn find_extern_function_or_choose(
     dna_file_tree: &DnaFileTree,
     coordinator_zomes: &Vec<ZomeManifest>,
-    fn_name_to_find: &String,
-    prompt: &String,
+    fn_name_to_find: &str,
+    prompt: &str,
 ) -> ScaffoldResult<(ZomeManifest, ItemFn)> {
     let mut functions_by_zome: BTreeMap<String, Vec<ItemFn>> = BTreeMap::new();
 
@@ -163,7 +163,7 @@ pub fn find_extern_function_or_choose(
 
 pub fn find_extern_function_in_zome(
     zome_file_tree: &ZomeFileTree,
-    fn_name: &String,
+    fn_name: &str,
 ) -> ScaffoldResult<Option<ItemFn>> {
     let all_extern_functions = find_all_extern_functions(&zome_file_tree)?;
     Ok(all_extern_functions
@@ -174,7 +174,7 @@ pub fn find_extern_function_in_zome(
 pub fn find_extern_function_in_zomes(
     dna_file_tree: &DnaFileTree,
     zomes: &Vec<ZomeManifest>,
-    fn_name_to_find: &String,
+    fn_name_to_find: &str,
 ) -> ScaffoldResult<Option<(ZomeManifest, ItemFn)>> {
     for coordinator_zome in zomes {
         let dna_file_tree = DnaFileTree::from_dna_manifest_path(

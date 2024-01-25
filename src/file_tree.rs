@@ -84,7 +84,7 @@ pub fn map_file<F: Fn(String) -> String>(
 pub fn insert_file(
     file_tree: &mut FileTree,
     file_path: &PathBuf,
-    content: &String,
+    content: &str,
 ) -> ScaffoldResult<()> {
     let mut folder_path = file_path.clone();
     folder_path.pop();
@@ -124,14 +124,14 @@ pub fn find_files_by_name(file_tree: &FileTree, file_name: &PathBuf) -> BTreeMap
     })
 }
 
-pub fn find_files<F: Fn(&PathBuf, &String) -> bool>(
+pub fn find_files<F: Fn(&PathBuf, &str) -> bool>(
     file_tree: &FileTree,
     find_by_path_and_contents: &F,
 ) -> BTreeMap<PathBuf, String> {
     find_map_files(
         file_tree,
         &|file_name, file_contents| match find_by_path_and_contents(file_name, file_contents) {
-            true => Some(file_contents.clone()),
+            true => Some(file_contents.to_owned()),
             false => None,
         },
     )
@@ -144,7 +144,7 @@ pub fn find_map_rust_files<T, F: Fn(&PathBuf, &syn::File) -> Option<T>>(
     find_map_files(file_tree, &|file_path, file_contents| {
         if let Some(extension) = file_path.extension() {
             if extension == "rs" {
-                let result: Result<syn::File, _> = syn::parse_str(file_contents.as_str());
+                let result: Result<syn::File, _> = syn::parse_str(file_contents);
 
                 if let Ok(file) = result {
                     if let Some(t) = find_fn(file_path, &file) {
@@ -158,14 +158,14 @@ pub fn find_map_rust_files<T, F: Fn(&PathBuf, &syn::File) -> Option<T>>(
     })
 }
 
-pub fn find_map_files<T, F: Fn(&PathBuf, &String) -> Option<T>>(
+pub fn find_map_files<T, F: Fn(&PathBuf, &str) -> Option<T>>(
     file_tree: &FileTree,
     find_by_path_and_contents: &F,
 ) -> BTreeMap<PathBuf, T> {
     find_map_files_rec(file_tree, find_by_path_and_contents, &PathBuf::new())
 }
 
-fn find_map_files_rec<T, F: Fn(&PathBuf, &String) -> Option<T>>(
+fn find_map_files_rec<T, F: Fn(&PathBuf, &str) -> Option<T>>(
     file_tree: &FileTree,
     find_by_path_and_contents: &F,
     current_path: &PathBuf,

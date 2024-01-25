@@ -9,15 +9,15 @@ use crate::{
 use super::{choose_or_get_template, templates_path};
 
 pub fn get_template(
-    template_url: &String,
+    template_url: &str,
     template: &Option<String>,
 ) -> ScaffoldResult<(String, FileTree)> {
-    validate_src(template_url.clone()).map_err(|s| ScaffoldError::DegitError(s))?;
+    validate_src(template_url.to_owned()).map_err(|s| ScaffoldError::DegitError(s))?;
 
     let tempdir = TempDir::new().unwrap();
 
     let tempdir_path = tempdir.path().to_path_buf();
-    degit(template_url.as_str(), tempdir_path.to_str().unwrap());
+    degit(template_url, tempdir_path.to_str().unwrap());
 
     let file_tree = load_directory_into_memory(&tempdir_path)?;
 

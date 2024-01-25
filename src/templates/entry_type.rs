@@ -25,16 +25,16 @@ pub struct ScaffoldEntryTypeData {
 pub fn scaffold_entry_type_templates(
     mut app_file_tree: FileTree,
     template_file_tree: &FileTree,
-    app_name: &String,
-    dna_role_name: &String,
+    app_name: &str,
+    dna_role_name: &str,
     coordinator_zome: &ZomeManifest,
     entry_type: &EntryDefinition,
     crud: &Crud,
     link_from_original_to_each_update: bool,
 ) -> ScaffoldResult<ScaffoldedTemplate> {
     let data = ScaffoldEntryTypeData {
-        app_name: app_name.clone(),
-        dna_role_name: dna_role_name.clone(),
+        app_name: app_name.to_owned(),
+        dna_role_name: dna_role_name.to_owned(),
         coordinator_zome_manifest: coordinator_zome.clone(),
         entry_type: entry_type.clone(),
         crud: crud.clone(),

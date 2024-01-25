@@ -28,11 +28,11 @@ pub struct ScaffoldWebAppData {
 pub fn scaffold_web_app_template(
     mut app_file_tree: FileTree,
     template_file_tree: &FileTree,
-    app_name: &String,
+    app_name: &str,
     holo_enabled: bool,
 ) -> ScaffoldResult<ScaffoldedTemplate> {
     let data = ScaffoldWebAppData {
-        app_name: app_name.clone(),
+        app_name: app_name.to_owned(),
         holochain_version: holochain_version(),
         hdk_version: hdk_version(),
         hdi_version: hdi_version(),

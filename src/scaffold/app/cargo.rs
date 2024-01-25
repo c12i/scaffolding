@@ -25,19 +25,19 @@ opt-level = "z"
 
 pub fn add_workspace_external_dependency(
     app_file_tree: FileTree,
-    crate_name: &String,
-    crate_version: &String,
+    crate_name: &str,
+    crate_version: &str,
 ) -> ScaffoldResult<FileTree> {
     add_workspace_dependency(
         app_file_tree,
         crate_name,
-        &toml::Value::String(crate_version.clone()),
+        &toml::Value::String(crate_version.to_owned()),
     )
 }
 
 pub fn add_workspace_path_dependency(
     app_file_tree: FileTree,
-    crate_name: &String,
+    crate_name: &str,
     path_from_workspace_root: &PathBuf,
 ) -> ScaffoldResult<FileTree> {
     let mut table = toml::map::Map::new();
@@ -57,7 +57,7 @@ pub fn add_workspace_path_dependency(
 
 fn add_workspace_dependency(
     mut app_file_tree: FileTree,
-    crate_name: &String,
+    crate_name: &str,
     crate_location: &toml::Value,
 ) -> ScaffoldResult<FileTree> {
     let mut workspace_cargo_toml = get_workspace_cargo_toml(&app_file_tree)?;
@@ -89,7 +89,7 @@ fn add_workspace_dependency(
         None => toml::map::Map::new(),
     };
 
-    dependencies.insert(crate_name.clone(), crate_location.clone());
+    dependencies.insert(crate_name.to_owned(), crate_location.clone());
     workspace_table.insert(
         String::from("dependencies"),
         toml::Value::Table(dependencies),
@@ -138,7 +138,7 @@ pub fn get_workspace_packages_locations(
 
 pub fn workspace_package_path(
     app_file_tree: &FileTree,
-    crate_name: &String,
+    crate_name: &str,
 ) -> ScaffoldResult<Option<PathBuf>> {
     let current_dir = std::env::current_dir()?;
 

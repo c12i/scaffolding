@@ -131,7 +131,7 @@ fn zome_crate_path(
     }
 }
 
-pub fn integrity_zome_name(coordinator_zome_name: &String) -> String {
+pub fn integrity_zome_name(coordinator_zome_name: &str) -> String {
     format!("{}_integrity", coordinator_zome_name)
 }
 
@@ -142,7 +142,7 @@ pub fn iter_all_eq<T: PartialEq>(iter: impl IntoIterator<Item = T>) -> Option<T>
 }
 
 fn choose_integrity_zome(
-    dna_name: &String,
+    dna_name: &str,
     integrity_zomes: &Vec<ZomeManifest>,
 ) -> ScaffoldResult<ZomeManifest> {
     let integrity_zome_names: Vec<String> = integrity_zomes
@@ -348,7 +348,7 @@ pub fn add_common_zome_dependencies_to_workspace_cargo(
 pub fn scaffold_integrity_zome_with_path(
     dna_file_tree: DnaFileTree,
     template_file_tree: &FileTree,
-    zome_name: &String,
+    zome_name: &str,
     path: &PathBuf,
 ) -> ScaffoldResult<ScaffoldedTemplate> {
     check_for_reserved_words(zome_name)?;
@@ -360,7 +360,7 @@ pub fn scaffold_integrity_zome_with_path(
 
     let folder_name = match zome_name.strip_suffix("_integrity") {
         Some(f) => f.to_string(),
-        None => zome_name.clone(),
+        None => zome_name.to_owned(),
     };
 
     let mut file_tree =
@@ -392,7 +392,7 @@ pub fn scaffold_integrity_zome_with_path(
 pub fn scaffold_integrity_zome(
     dna_file_tree: DnaFileTree,
     template_file_tree: &FileTree,
-    zome_name: &String,
+    zome_name: &str,
     path: &Option<PathBuf>,
 ) -> ScaffoldResult<ScaffoldedTemplate> {
     let path_to_scaffold_in = match path {
@@ -406,13 +406,13 @@ pub fn scaffold_integrity_zome(
                     p
                 } else {
                     choose_directory_path(
-                        &String::from("Where should the integrity zome be scaffolded instead?"),
+                        "Where should the integrity zome be scaffolded instead?",
                         dna_file_tree.file_tree_ref(),
                     )?
                 }
             }
             None => choose_directory_path(
-                &String::from("Where should the integrity zome be scaffolded?"),
+                "Where should the integrity zome be scaffolded?",
                 dna_file_tree.file_tree_ref(),
             )?,
         },
@@ -429,7 +429,7 @@ pub fn scaffold_integrity_zome(
 pub fn scaffold_coordinator_zome_in_path(
     dna_file_tree: DnaFileTree,
     template_file_tree: &FileTree,
-    zome_name: &String,
+    zome_name: &str,
     dependencies: &Option<Vec<String>>,
     path: &PathBuf,
 ) -> ScaffoldResult<ScaffoldedTemplate> {
@@ -469,7 +469,7 @@ pub fn scaffold_coordinator_zome_in_path(
 pub fn scaffold_coordinator_zome(
     dna_file_tree: DnaFileTree,
     template_file_tree: &FileTree,
-    zome_name: &String,
+    zome_name: &str,
     dependencies: &Option<Vec<String>>,
     path: &Option<PathBuf>,
 ) -> ScaffoldResult<ScaffoldedTemplate> {

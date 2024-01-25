@@ -19,12 +19,12 @@ pub struct ScaffoldDnaData {
 pub fn scaffold_dna_templates(
     mut app_file_tree: FileTree,
     template_file_tree: &FileTree,
-    app_name: &String,
-    dna_name: &String,
+    app_name: &str,
+    dna_name: &str,
 ) -> ScaffoldResult<ScaffoldedTemplate> {
     let data = ScaffoldDnaData {
-        app_name: app_name.clone(),
-        dna_name: dna_name.clone(),
+        app_name: app_name.to_owned(),
+        dna_name: dna_name.to_owned(),
     };
 
     let h = build_handlebars(&template_file_tree)?;

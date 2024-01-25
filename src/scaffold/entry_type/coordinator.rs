@@ -112,11 +112,11 @@ pub fn get_all_revisions_for_{snake_entry_def_name}(original_{snake_entry_def_na
     )
 }
 
-pub fn updates_link_name(entry_def_name: &String) -> String {
+pub fn updates_link_name(entry_def_name: &str) -> String {
     format!("{}Updates", entry_def_name.to_case(Case::Pascal))
 }
 
-pub fn read_handler_with_linking_to_updates(entry_def_name: &String) -> String {
+pub fn read_handler_with_linking_to_updates(entry_def_name: &str) -> String {
     let snake_entry_def_name = entry_def_name.to_case(Case::Snake);
     format!(
         r#"#[hdk_extern]
@@ -179,8 +179,8 @@ pub fn get_all_revisions_for_{snake_entry_def_name}(original_{snake_entry_def_na
 
 pub fn create_link_for_cardinality(
     entry_def: &EntryDefinition,
-    field_name: &String,
-    link_type_name: &String,
+    field_name: &str,
+    link_type_name: &str,
     cardinality: &Cardinality,
 ) -> String {
     let link_target = match entry_def.reference_entry_hash {
@@ -269,14 +269,14 @@ pub fn create_{}({}: {}) -> ExternResult<Record> {{
     )
 }
 
-pub fn update_handler(entry_def_name: &String, link_from_original_to_each_update: bool) -> String {
+pub fn update_handler(entry_def_name: &str, link_from_original_to_each_update: bool) -> String {
     match link_from_original_to_each_update {
         true => update_handler_linking_on_each_update(entry_def_name),
         false => update_handler_without_linking_on_each_update(entry_def_name),
     }
 }
 
-pub fn update_handler_without_linking_on_each_update(entry_def_name: &String) -> String {
+pub fn update_handler_without_linking_on_each_update(entry_def_name: &str) -> String {
     format!(
         r#"#[derive(Serialize, Deserialize, Debug)]
 pub struct Update{}Input {{
@@ -308,7 +308,7 @@ pub fn update_{}(input: Update{}Input) -> ExternResult<Record> {{
     )
 }
 
-pub fn update_handler_linking_on_each_update(entry_def_name: &String) -> String {
+pub fn update_handler_linking_on_each_update(entry_def_name: &str) -> String {
     format!(
         r#"#[derive(Serialize, Deserialize, Debug)]
 pub struct Update{}Input {{
@@ -482,7 +482,7 @@ pub fn get_oldest_delete_for_{snake_entry_def_name}(
 }
 
 fn initial_crud_handlers(
-    integrity_zome_name: &String,
+    integrity_zome_name: &str,
     entry_def: &EntryDefinition,
     crud: &Crud,
     link_from_original_to_each_update: bool,
@@ -529,7 +529,7 @@ fn signal_has_entry_types(signal_enum: &syn::ItemEnum) -> bool {
     signal_enum
         .variants
         .iter()
-        .find(|v| v.ident.to_string().eq(&String::from("EntryCreated")))
+        .find(|v| v.ident.to_string().eq("EntryCreated"))
         .is_some()
 }
 
@@ -540,7 +540,7 @@ fn signal_action_has_entry_types(expr_match: &syn::ExprMatch) -> bool {
         .find(|arm| {
             if let syn::Pat::TupleStruct(tuple_struct_pat) = &arm.pat {
                 if let Some(first_segment) = tuple_struct_pat.path.segments.last() {
-                    if first_segment.ident.to_string().eq(&String::from("Create")) {
+                    if first_segment.ident.to_string().eq("Create") {
                         return true;
                     }
                 }
@@ -616,7 +616,7 @@ fn signal_action_match_arms() -> ScaffoldResult<Vec<syn::Arm>> {
 
 pub fn add_crud_functions_to_coordinator(
     zome_file_tree: ZomeFileTree,
-    integrity_zome_name: &String,
+    integrity_zome_name: &str,
     entry_def: &EntryDefinition,
     crud: &Crud,
     link_from_original_to_each_update: bool,
@@ -668,7 +668,7 @@ pub fn add_crud_functions_to_coordinator(
 
                 for item in &mut file.items {
                     if let syn::Item::Enum(item_enum) = item {
-                        if item_enum.ident.to_string().eq(&String::from("Signal")) {
+                        if item_enum.ident.to_string().eq("Signal") {
                             if !signal_has_entry_types(item_enum) {
                                 first_entry_type_scaffolded = true;
                                 for v in signal_entry_types_variants()? {
@@ -683,7 +683,7 @@ pub fn add_crud_functions_to_coordinator(
                             .sig
                             .ident
                             .to_string()
-                            .eq(&String::from("signal_action"))
+                            .eq("signal_action")
                         {
                             if let None = find_ending_match_expr_in_block(&mut item_fn.block) {
                                 item_fn.block = Box::new(syn::parse_str::<syn::Block>(

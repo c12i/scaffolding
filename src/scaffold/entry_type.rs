@@ -34,7 +34,7 @@ pub mod integrity;
 pub mod utils;
 
 fn check_field_definitions(
-    entry_type_name: &String,
+    entry_type_name: &str,
     zome_file_tree: &ZomeFileTree,
     fields: &Vec<FieldDefinition>,
 ) -> ScaffoldResult<()> {
@@ -74,7 +74,7 @@ fn check_field_definitions(
 pub fn scaffold_entry_type(
     zome_file_tree: ZomeFileTree,
     template_file_tree: &FileTree,
-    name: &String,
+    name: &str,
     maybe_crud: &Option<Crud>,
     maybe_reference_entry_hash: &Option<bool>,
     maybe_link_from_original_to_each_update: &Option<bool>,
@@ -145,7 +145,7 @@ pub fn scaffold_entry_type(
     };
 
     let entry_def = EntryDefinition {
-        name: name.clone(),
+        name: name.to_owned(),
         fields,
         reference_entry_hash,
     };

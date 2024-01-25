@@ -85,7 +85,7 @@ fn default_dnas_dir_path() -> PathBuf {
     PathBuf::new().join("dnas")
 }
 
-fn zome_wasm_location(dna_file_tree: &DnaFileTree, zome_name: &String) -> Location {
+fn zome_wasm_location(dna_file_tree: &DnaFileTree, zome_name: &str) -> Location {
     let mut zome_wasm_location = PathBuf::new();
 
     let mut dna_workdir_path = dna_file_tree.dna_manifest_path.clone();
@@ -107,12 +107,13 @@ fn zome_wasm_location(dna_file_tree: &DnaFileTree, zome_name: &String) -> Locati
 pub fn find_dna_manifests(
     app_file_tree: &FileTree,
 ) -> ScaffoldResult<BTreeMap<PathBuf, DnaManifest>> {
-    let files = find_files_by_name(app_file_tree, &ValidatedDnaManifest::path());
+    let validated_dna_manifest_path = ValidatedDnaManifest::path();
+    let files = find_files_by_name(app_file_tree, &validated_dna_manifest_path);
 
     let manifests: BTreeMap<PathBuf, DnaManifest> = files
         .into_iter()
         .map(|(key, manifest_str)| {
-            let manifest: DnaManifest = serde_yaml::from_str(manifest_str.as_str())?;
+            let manifest: DnaManifest = serde_yaml::from_str(&manifest_str)?;
             Ok((key, manifest))
         })
         .collect::<serde_yaml::Result<Vec<(PathBuf, DnaManifest)>>>()?
@@ -156,7 +157,7 @@ pub fn get_or_choose_dnas_dir_path(app_file_tree: &FileTree) -> ScaffoldResult<P
         return Ok(default_path.clone());
     } else {
         choose_directory_path(
-            &String::from("Which directory should the DNA be scaffolded in?"),
+            "Which directory should the DNA be scaffolded in?",
             &app_file_tree,
         )
     }
@@ -165,7 +166,7 @@ pub fn get_or_choose_dnas_dir_path(app_file_tree: &FileTree) -> ScaffoldResult<P
 pub fn scaffold_dna(
     app_file_tree: AppFileTree,
     template_file_tree: &FileTree,
-    dna_name: &String,
+    dna_name: &str,
 ) -> ScaffoldResult<ScaffoldedTemplate> {
     check_for_reserved_words(dna_name)?;
 
@@ -175,7 +176,7 @@ pub fn scaffold_dna(
             "integrity" => dir! {},
         },
         "workdir" => dir! {
-            "dna.yaml" => file!(empty_dna_manifest(dna_name.clone())?)
+            "dna.yaml" => file!(empty_dna_manifest(dna_name.to_owned())?)
         }
     };
 
@@ -183,7 +184,7 @@ pub fn scaffold_dna(
 
     let dna_workdir_path = PathBuf::new()
         .join(&dnas_path)
-        .join(dna_name.clone())
+        .join(dna_name)
         .join("workdir");
     let mut dna_workdir_relative_to_app_manifest = PathBuf::new();
 
@@ -203,11 +204,11 @@ pub fn scaffold_dna(
     let mut roles = app_file_tree.app_manifest.app_roles();
 
     if let Some(_) = roles.iter().find(|r| r.name.eq(dna_name)) {
-        return Err(ScaffoldError::DnaAlreadyExists(dna_name.clone()));
+        return Err(ScaffoldError::DnaAlreadyExists(dna_name.to_owned()));
     }
 
     roles.push(AppRoleManifest {
-        name: dna_name.clone(),
+        name: dna_name.to_owned(),
         dna: AppRoleDnaManifest {
             location: Some(Location::Bundled(dna_bundle_path)),
             modifiers: DnaModifiersOpt {

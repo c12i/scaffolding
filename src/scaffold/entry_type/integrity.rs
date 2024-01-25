@@ -211,7 +211,7 @@ pub fn render_entry_definition_file(
 fn is_create_entry(pat: &syn::Pat) -> bool {
     if let syn::Pat::Struct(pat_struct) = pat {
         if let Some(ps) = pat_struct.path.segments.last() {
-            if ps.ident.to_string().eq(&String::from("CreateEntry")) {
+            if ps.ident.to_string().eq("CreateEntry") {
                 return true;
             }
         }
@@ -222,7 +222,7 @@ fn is_create_entry(pat: &syn::Pat) -> bool {
 fn is_update_entry(pat: &syn::Pat) -> bool {
     if let syn::Pat::Struct(pat_struct) = pat {
         if let Some(ps) = pat_struct.path.segments.last() {
-            if ps.ident.to_string().eq(&String::from("UpdateEntry")) {
+            if ps.ident.to_string().eq("UpdateEntry") {
                 return true;
             }
         }
@@ -233,7 +233,7 @@ fn is_update_entry(pat: &syn::Pat) -> bool {
 fn is_delete_entry(pat: &syn::Pat) -> bool {
     if let syn::Pat::Struct(pat_struct) = pat {
         if let Some(ps) = pat_struct.path.segments.last() {
-            if ps.ident.to_string().eq(&String::from("DeleteEntry")) {
+            if ps.ident.to_string().eq("DeleteEntry") {
                 return true;
             }
         }
@@ -328,7 +328,7 @@ pub use {}::*;
                 // Insert the entry types just before LinkTypes or before the first function if LinkTypes doesn't exist
                 match file.items.iter().find_position(|i| {
                     if let syn::Item::Enum(item_enum) = i {
-                        if item_enum.ident.to_string().eq(&String::from("LinkTypes")) {
+                        if item_enum.ident.to_string().eq("LinkTypes") {
                             return true;
                         }
                     }
@@ -345,12 +345,12 @@ pub use {}::*;
 
                 for item in &mut file.items {
                     if let syn::Item::Fn(item_fn) = item {
-                        if item_fn.sig.ident.to_string().eq(&String::from("validate")) {
+                        if item_fn.sig.ident.to_string().eq("validate") {
                             for stmt in &mut item_fn.block.stmts {
                                 if let syn::Stmt::Expr(syn::Expr::Match(match_expr),_) = stmt {
                                     if let syn::Expr::Try(try_expr) = &mut *match_expr.expr {
                                         if let syn::Expr::MethodCall(call) = &mut *try_expr.expr {
-                                            if call.method.to_string().eq(&String::from("flattened"))
+                                            if call.method.to_string().eq("flattened")
                                             {
                                                 if let Some(turbofish) = &mut call.turbofish {
                                                     if let Some(first_arg) =
@@ -524,12 +524,12 @@ fn add_entry_type_to_validation_arms(
     let pascal_entry_def_name = entry_def.name.to_case(Case::Pascal);
     let snake_entry_def_name = entry_def.name.to_case(Case::Snake);
     if let syn::Item::Fn(item_fn) = item {
-        if item_fn.sig.ident.to_string().eq(&String::from("validate")) {
+        if item_fn.sig.ident.to_string().eq("validate") {
             for stmt in &mut item_fn.block.stmts {
                 if let syn::Stmt::Expr(syn::Expr::Match(match_expr),_) = stmt {
                     if let syn::Expr::Try(try_expr) = &mut *match_expr.expr {
                         if let syn::Expr::MethodCall(call) = &mut *try_expr.expr {
-                            if call.method.to_string().eq(&String::from("flattened")) {
+                            if call.method.to_string().eq("flattened") {
                                 for arm in &mut match_expr.arms {
                                     if let syn::Pat::TupleStruct(pat_tuple_struct) = &mut arm.pat {
                                         if let Some(path_segment) =
@@ -537,7 +537,7 @@ fn add_entry_type_to_validation_arms(
                                         {
                                             let path_segment_str = path_segment.ident.to_string();
 
-                                            if path_segment_str.eq(&String::from("StoreRecord")) {
+                                            if path_segment_str.eq("StoreRecord") {
                                                 if let Some(op_entry_match_expr) =
                                                     find_ending_match_expr(&mut *arm.body)
                                                 {
@@ -705,7 +705,7 @@ fn add_entry_type_to_validation_arms(
                                                     }
                                                 }
                                             } else if path_segment_str
-                                                .eq(&String::from("StoreEntry"))
+                                                .eq("StoreEntry")
                                             {
                                                 if let Some(op_entry_match_expr) =
                                                     find_ending_match_expr(&mut *arm.body)
@@ -774,7 +774,7 @@ fn add_entry_type_to_validation_arms(
                                                     }
                                                 }
                                             } else if path_segment_str
-                                                .eq(&String::from("RegisterUpdate"))
+                                                .eq("RegisterUpdate")
                                             {
                                                 if let Some(op_entry_match_expr) =
                                                     find_ending_match_expr(&mut *arm.body)
@@ -791,7 +791,7 @@ fn add_entry_type_to_validation_arms(
                                                                 if ps
                                                                     .ident
                                                                     .to_string()
-                                                                    .eq(&String::from("Entry"))
+                                                                    .eq("Entry")
                                                                 {
                                                                     // Add new entry type to match arm
                                                                     if let Some(_) =
@@ -833,7 +833,7 @@ fn add_entry_type_to_validation_arms(
                                                     }
                                                 }
                                             } else if path_segment_str
-                                                .eq(&String::from("RegisterDelete"))
+                                                .eq("RegisterDelete")
                                             {
                                                 if let Some(op_entry_match_expr) =
                                                     find_ending_match_expr(&mut *arm.body)
@@ -850,7 +850,7 @@ fn add_entry_type_to_validation_arms(
                                                                 if ps
                                                                     .ident
                                                                     .to_string()
-                                                                    .eq(&String::from("Entry"))
+                                                                    .eq("Entry")
                                                                 {
                                                                     // Add new entry type to match arm
                                                                     if let Some(_) =

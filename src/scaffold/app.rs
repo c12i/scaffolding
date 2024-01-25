@@ -79,12 +79,13 @@ pub fn choose_app(
 pub fn find_app_manifests(
     app_file_tree: &FileTree,
 ) -> ScaffoldResult<BTreeMap<PathBuf, AppManifest>> {
-    let files = find_files_by_name(app_file_tree, &AppManifest::path());
+    let app_manifest_path = AppManifest::path();
+    let files = find_files_by_name(app_file_tree, &app_manifest_path);
 
     let manifests: BTreeMap<PathBuf, AppManifest> = files
         .into_iter()
         .map(|(key, manifest_str)| {
-            let manifest: AppManifest = serde_yaml::from_str(manifest_str.as_str())?;
+            let manifest: AppManifest = serde_yaml::from_str(&manifest_str)?;
             Ok((key, manifest))
         })
         .collect::<serde_yaml::Result<Vec<(PathBuf, AppManifest)>>>()?

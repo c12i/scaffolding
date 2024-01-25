@@ -157,7 +157,7 @@ pub fn choose_widget(
 }
 
 pub fn choose_field(
-    entry_type_name: &String,
+    entry_type_name: &str,
     zome_file_tree: &ZomeFileTree,
     field_types_templates: &FileTree,
 ) -> ScaffoldResult<FieldDefinition> {
@@ -249,9 +249,10 @@ pub fn choose_field(
             match link_from {
                 false => None,
                 true => {
-                    let role = input_with_case(&String::from(
+                    let role = input_with_case(
                         "Which role does this agent play in the relationship ? (eg. \"creator\", \"invitee\")",
-                    ), Case::Snake)?;
+                        Case::Snake
+                    )?;
                     Some(Referenceable::Agent { role })
                 }
             }
@@ -302,7 +303,7 @@ pub fn choose_field(
 
                     match selection == all_entry_types.len() {
                         true => Some(Referenceable::EntryType(EntryTypeReference {
-                            entry_type: entry_type_name.clone(),
+                            entry_type: entry_type_name.to_owned(),
                             reference_entry_hash,
                         })),
                         false => Some(Referenceable::EntryType(EntryTypeReference {
@@ -322,7 +323,7 @@ pub fn choose_field(
     };
 
     let field_name: String =
-        input_with_case_and_initial_text(&String::from("Field name:"), Case::Snake, &initial_text)?;
+        input_with_case_and_initial_text("Field name:", Case::Snake, &initial_text)?;
 
     let widget = choose_widget(&field_type, field_types_templates)?;
 
@@ -336,7 +337,7 @@ pub fn choose_field(
 }
 
 pub fn choose_fields(
-    entry_type_name: &String,
+    entry_type_name: &str,
     zome_file_tree: &ZomeFileTree,
     field_types_templates: &FileTree,
 ) -> ScaffoldResult<Vec<FieldDefinition>> {
