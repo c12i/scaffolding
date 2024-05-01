@@ -1,0 +1,49 @@
+name: Check for new 0_2 holochain releases, then build and test
+on:
+  schedule:
+    - cron:  '0 */6 * * *'
+
+jobs:
+  check-holochain-0_2-releases:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+      - name: Setup node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Check for new holochain releases
+        id: check_releases
+        run: |
+             echo "HOLOCHAIN_VERSION=$(node ./scripts/holochain-releases-0_2.mjs)" >> $GITHUB_OUTPUT
+    outputs:
+        holochain-version: ${{ steps.check_releases.outputs.HOLOCHAIN_VERSION }}
+
+  build-and-test-holochain-0_2:
+    needs: check-holochain-0_2-releases
+    if: ${{ needs.check-holochain-0_2-releases.outputs.holochain-version }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Switch to holochain-0.2
+        run: git checkout holochain-0.2 
+      - name: Install nix
+        uses: cachix/install-nix-action@v25
+        with:
+          install_url: https://releases.nixos.org/nix/nix-2.20.0/install
+          extra_nix_config: |
+            experimental-features = flakes nix-command
+      - name: Cachix
+        uses: cachix/cachix-action@v14
+        with:
+          name: holochain-ci
+      - name: Build and test
+        env:
+          HOLOCHAIN_VERSION: ${{ needs.check-holochain-0_2-releases.outputs.holochain-version }}
+        run: |
+            cd $GITHUB_WORKSPACE
+            nix develop --override-input "versions/scaffolding" . .#ci --command ./run_test.sh -t vue -o $HOLOCHAIN_VERSION
