@@ -1,5 +1,7 @@
 name: Check for new 0_2 holochain releases, then build and test
 on:
+  push:
+    branches: [ add-release-check-cron ]
   schedule:
     - cron:  '0 */6 * * *'
 
