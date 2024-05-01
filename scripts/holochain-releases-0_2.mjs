@@ -21,7 +21,7 @@ https.get(URL, request, (res) => {
 					const result = JSON.parse(data);
 					const holochain_0_2 = result
 						.filter(r => r.tag_name.startsWith('holochain-0.2'))
-						.filter(r => new Date(r.published_at) >= n_hours_ago(6))
+						.filter(r => new Date(r.published_at) >= n_hours_ago(144))
 						.map(r => r.tag_name)
 					
 					if (holochain_0_2.length) {
