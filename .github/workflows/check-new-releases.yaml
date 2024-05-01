@@ -32,7 +32,7 @@ jobs:
         with:
           fetch-depth: 0
       - name: Switch to holochain-0.2
-        run: git checkout holochain-0.2 
+        run: git checkout develop-0.2 
       - name: Extend space
         uses: ./.github/actions/extend-space
       - name: Install nix
