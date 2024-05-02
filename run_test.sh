@@ -19,7 +19,7 @@ while getopts ":t:s:o:" opt; do
       exit 1
       ;;
     :)
-      if [ "$OPTARG" == "e" ]; then
+      if [ "$OPTARG" == "o" ]; then
         OVERRIDE_HOLOCHAIN_VERSION=
         continue
       fi
