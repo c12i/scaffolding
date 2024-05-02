@@ -1,3 +1,5 @@
+#!/usr/bin/env node
+
 import https from 'node:https'
 
 const URL = 'https://api.github.com/repos/holochain/holochain/releases'
