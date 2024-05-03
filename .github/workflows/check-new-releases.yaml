@@ -1,4 +1,4 @@
-name: Check for new 0_2 holochain releases, then build and test
+name: Check for new holochain releases 
 on:
   push:
     branches: [ add-release-check-cron ]
