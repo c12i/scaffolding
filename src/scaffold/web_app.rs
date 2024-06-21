@@ -9,14 +9,14 @@ use crate::{error::ScaffoldError, file_tree::FileTree};
 
 use super::app::{
     cargo::workspace_cargo_toml,
-    gitignore::gitignore,
+    git::gitignore,
     manifests::{empty_happ_manifest, web_happ_manifest},
     nix::flake_nix,
 };
 
 pub mod uis;
 
-fn web_app_skeleton(
+pub fn scaffold_web_app(
     app_name: String,
     description: Option<String>,
     skip_nix: bool,
@@ -46,24 +46,4 @@ fn web_app_skeleton(
         scaffold_web_app_template(app_file_tree, template_file_tree, &app_name, holo_enabled)?;
 
     Ok(scaffold_template_result)
-}
-
-pub fn scaffold_web_app(
-    app_name: String,
-    description: Option<String>,
-    skip_nix: bool,
-    template_file_tree: &FileTree,
-    holo_enabled: bool,
-) -> ScaffoldResult<ScaffoldedTemplate> {
-    let scaffolded_template = web_app_skeleton(
-        app_name.clone(),
-        description,
-        skip_nix,
-        template_file_tree,
-        holo_enabled,
-    )?;
-    Ok(ScaffoldedTemplate {
-        file_tree: scaffolded_template.file_tree,
-        next_instructions: scaffolded_template.next_instructions,
-    })
 }

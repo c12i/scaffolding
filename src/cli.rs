@@ -3,6 +3,7 @@ use crate::file_tree::{
     build_file_tree, file_content, load_directory_into_memory, map_file, FileTree,
 };
 use crate::scaffold::app::cargo::exec_metadata;
+use crate::scaffold::app::git::setup_git_environment;
 use crate::scaffold::app::nix::setup_nix_developer_environment;
 use crate::scaffold::app::AppFileTree;
 use crate::scaffold::collection::{scaffold_collection, CollectionType};
@@ -36,7 +37,6 @@ use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use std::ffi::OsString;
 use std::path::{Path, PathBuf};
-use std::process::{Command, Stdio};
 use std::str::FromStr;
 use std::{env, fs};
 use structopt::StructOpt;
@@ -952,44 +952,6 @@ impl HcScaffoldTemplate {
             } => target_template.clone(),
         }
     }
-}
-
-fn setup_git_environment(path: &Path) -> ScaffoldResult<()> {
-    let output = Command::new("git")
-        .stdout(Stdio::inherit())
-        .current_dir(path)
-        .args(["init", "--initial-branch=main"])
-        .output()?;
-
-    if !output.status.success() {
-        let output = Command::new("git")
-            .stdout(Stdio::inherit())
-            .stderr(Stdio::inherit())
-            .current_dir(path)
-            .args(["init"])
-            .output()?;
-        if !output.status.success() {
-            println!("Warning: error running \"git init\"");
-            return Ok(());
-        }
-
-        let _output = Command::new("git")
-            .current_dir(path)
-            .args(["branch", "main"])
-            .output()?;
-    }
-
-    let output = Command::new("git")
-        .stdout(Stdio::inherit())
-        .stderr(Stdio::inherit())
-        .current_dir(path)
-        .args(["add", "."])
-        .output()?;
-
-    if !output.status.success() {
-        println!("Warning: error running \"git add .\"");
-    }
-    Ok(())
 }
 
 /// Write hcScaffold config to the hApp's root `package.json` file

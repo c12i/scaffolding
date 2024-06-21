@@ -33,6 +33,25 @@ pub enum CollectionType {
     ByAuthor,
 }
 
+impl CollectionType {
+    pub fn choose() -> ScaffoldResult<CollectionType> {
+        let selection = Select::with_theme(&ColorfulTheme::default())
+            .with_prompt("Which type of collection should be scaffolded?")
+            .default(0)
+            .item("Global (get all entries of the selected entry types)")
+            .item("By author (get entries of the selected entry types that a given author has created)")
+            .interact()?;
+        match selection {
+            0 => Ok(CollectionType::Global),
+            1 => Ok(CollectionType::ByAuthor),
+            _ => Err(ScaffoldError::InvalidCollectionType(
+                selection.to_string(),
+                "".into(),
+            )),
+        }
+    }
+}
+
 impl FromStr for CollectionType {
     type Err = ScaffoldError;
     fn from_str(s: &str) -> ScaffoldResult<Self> {
@@ -44,23 +63,6 @@ impl FromStr for CollectionType {
                 "global, by-author".to_string(),
             )),
         }
-    }
-}
-
-pub fn choose_collection_type() -> ScaffoldResult<CollectionType> {
-    let selection = Select::with_theme(&ColorfulTheme::default())
-        .with_prompt("Which type of collection should be scaffolded?")
-        .default(0)
-        .item("Global (get all entries of the selected entry types)")
-        .item("By author (get entries of the selected entry types that a given author has created)")
-        .interact()?;
-    match selection {
-        0 => Ok(CollectionType::Global),
-        1 => Ok(CollectionType::ByAuthor),
-        _ => Err(ScaffoldError::InvalidCollectionType(
-            selection.to_string(),
-            "".into(),
-        )),
     }
 }
 
@@ -83,7 +85,7 @@ pub fn scaffold_collection(
 
     let collection_type = match maybe_collection_type {
         Some(t) => Ok(t.clone()),
-        None => choose_collection_type(),
+        None => CollectionType::choose(),
     }?;
 
     let all_entries_names: Vec<String> = all_entries

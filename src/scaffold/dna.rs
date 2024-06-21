@@ -84,85 +84,6 @@ impl DnaFileTree {
     }
 }
 
-fn default_dnas_dir_path() -> PathBuf {
-    PathBuf::new().join("dnas")
-}
-
-fn zome_wasm_location(dna_file_tree: &DnaFileTree, zome_name: &str) -> Location {
-    let mut zome_wasm_location = PathBuf::new();
-
-    let mut dna_workdir_path = dna_file_tree.dna_manifest_path.clone();
-    dna_workdir_path.pop();
-
-    for _c in dna_workdir_path.components() {
-        zome_wasm_location = zome_wasm_location.join("..");
-    }
-    zome_wasm_location = zome_wasm_location
-        .join("target")
-        .join("wasm32-unknown-unknown")
-        .join("release")
-        .join(format!("{}.wasm", zome_name));
-
-    Location::Bundled(zome_wasm_location)
-}
-
-/// Returns the path to the existing app manifests in the given project structure
-pub fn find_dna_manifests(
-    app_file_tree: &FileTree,
-) -> ScaffoldResult<BTreeMap<PathBuf, DnaManifest>> {
-    let files = find_files_by_name(app_file_tree, &ValidatedDnaManifest::path());
-
-    let manifests: BTreeMap<PathBuf, DnaManifest> = files
-        .into_iter()
-        .map(|(key, manifest_str)| {
-            let manifest: DnaManifest = serde_yaml::from_str(manifest_str.as_str())?;
-            Ok((key, manifest))
-        })
-        .collect::<serde_yaml::Result<Vec<(PathBuf, DnaManifest)>>>()?
-        .into_iter()
-        .collect();
-
-    Ok(manifests)
-}
-
-fn choose_dna(
-    dna_manifests: Vec<(PathBuf, DnaManifest)>,
-) -> ScaffoldResult<(PathBuf, DnaManifest)> {
-    let dna_names: Vec<String> = dna_manifests
-        .iter()
-        .map(|(_, m)| m.name().to_string())
-        .collect();
-
-    let selection = Select::with_theme(&ColorfulTheme::default())
-        .with_prompt("Multiple DNAs were found in this repository, choose one:")
-        .default(0)
-        .items(&dna_names[..])
-        .interact()?;
-
-    Ok(dna_manifests[selection].clone())
-}
-
-pub fn read_dna_manifest(
-    app_file_tree: &FileTree,
-    dna_manifest_path: &Path,
-) -> ScaffoldResult<DnaManifest> {
-    let contents = file_content(app_file_tree, dna_manifest_path)?;
-    let manifest: DnaManifest = serde_yaml::from_str(contents.as_str())?;
-    Ok(manifest)
-}
-
-pub fn get_or_choose_dnas_dir_path(app_file_tree: &FileTree) -> ScaffoldResult<PathBuf> {
-    let default_path = default_dnas_dir_path();
-    if dir_exists(app_file_tree, &default_path) {
-        Ok(default_path.clone())
-    } else {
-        choose_directory_path(
-            &String::from("Which directory should the DNA be scaffolded in?"),
-            app_file_tree,
-        )
-    }
-}
-
 pub fn scaffold_dna(
     app_file_tree: AppFileTree,
     template_file_tree: &FileTree,
@@ -255,4 +176,83 @@ pub fn scaffold_dna(
         &app_name.to_string(),
         dna_name,
     )
+}
+
+fn default_dnas_dir_path() -> PathBuf {
+    PathBuf::new().join("dnas")
+}
+
+fn zome_wasm_location(dna_file_tree: &DnaFileTree, zome_name: &str) -> Location {
+    let mut zome_wasm_location = PathBuf::new();
+
+    let mut dna_workdir_path = dna_file_tree.dna_manifest_path.clone();
+    dna_workdir_path.pop();
+
+    for _c in dna_workdir_path.components() {
+        zome_wasm_location = zome_wasm_location.join("..");
+    }
+    zome_wasm_location = zome_wasm_location
+        .join("target")
+        .join("wasm32-unknown-unknown")
+        .join("release")
+        .join(format!("{}.wasm", zome_name));
+
+    Location::Bundled(zome_wasm_location)
+}
+
+/// Returns the path to the existing app manifests in the given project structure
+pub fn find_dna_manifests(
+    app_file_tree: &FileTree,
+) -> ScaffoldResult<BTreeMap<PathBuf, DnaManifest>> {
+    let files = find_files_by_name(app_file_tree, &ValidatedDnaManifest::path());
+
+    let manifests: BTreeMap<PathBuf, DnaManifest> = files
+        .into_iter()
+        .map(|(key, manifest_str)| {
+            let manifest: DnaManifest = serde_yaml::from_str(manifest_str.as_str())?;
+            Ok((key, manifest))
+        })
+        .collect::<serde_yaml::Result<Vec<(PathBuf, DnaManifest)>>>()?
+        .into_iter()
+        .collect();
+
+    Ok(manifests)
+}
+
+fn choose_dna(
+    dna_manifests: Vec<(PathBuf, DnaManifest)>,
+) -> ScaffoldResult<(PathBuf, DnaManifest)> {
+    let dna_names: Vec<String> = dna_manifests
+        .iter()
+        .map(|(_, m)| m.name().to_string())
+        .collect();
+
+    let selection = Select::with_theme(&ColorfulTheme::default())
+        .with_prompt("Multiple DNAs were found in this repository, choose one:")
+        .default(0)
+        .items(&dna_names[..])
+        .interact()?;
+
+    Ok(dna_manifests[selection].clone())
+}
+
+pub fn read_dna_manifest(
+    app_file_tree: &FileTree,
+    dna_manifest_path: &Path,
+) -> ScaffoldResult<DnaManifest> {
+    let contents = file_content(app_file_tree, dna_manifest_path)?;
+    let manifest: DnaManifest = serde_yaml::from_str(contents.as_str())?;
+    Ok(manifest)
+}
+
+pub fn get_or_choose_dnas_dir_path(app_file_tree: &FileTree) -> ScaffoldResult<PathBuf> {
+    let default_path = default_dnas_dir_path();
+    if dir_exists(app_file_tree, &default_path) {
+        Ok(default_path.clone())
+    } else {
+        choose_directory_path(
+            &String::from("Which directory should the DNA be scaffolded in?"),
+            app_file_tree,
+        )
+    }
 }
